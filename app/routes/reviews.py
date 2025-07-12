@@ -4,6 +4,7 @@ from sqlalchemy import select
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from app.database import db
 from app.models import Review
+from app.utils.leaderboard import update_leaderboard
 
 analyzer = SentimentIntensityAnalyzer()
 reviews_bp = Blueprint('reviews', __name__)
@@ -22,8 +23,9 @@ def post_review(market_id):
 
     sentiment_score = analyzer.polarity_scores(review_text)['compound']
 
-    new_review = Review(butcher_id=butcher_id, user_id=user_id, comment=review_text, rating=rating, sentiment_score=sentiment_score)
+    new_review = Review(market_id=market_id, user_id=user_id, comment=review_text, rating=rating, sentiment_score=sentiment_score)
     db.session.add(new_review)
     db.session.commit()
+    update_leaderboard(redis_client, market_id, rating, sentiment_score)
 
     return jsonify({'message': 'Review posted successfully'}), 201
