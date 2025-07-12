@@ -3,11 +3,13 @@ from sqlalchemy import select
 from app.database import db
 from app.models import Market, Review
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from app.utils.cache import redis_cache
 
 analyzer = SentimentIntensityAnalyzer()
 markets_bp = Blueprint('markets', __name__)
 
 @markets_bp.route('/', methods=['GET'])
+@redis_cache(lambda: 'markets_all', ttl=300) #Note- whenver you write a market or soft-delete one, remember to redis_client.delete('markets_all')
 def get_all_markets():
     markets = db.session.execute(select(Market)).scalars().all()
     return jsonify([{
