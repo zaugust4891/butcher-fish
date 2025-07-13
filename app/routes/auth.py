@@ -9,7 +9,8 @@ from itsdangerous import URLSafeTimedSerializer
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from app.models import User
 from app.database import db
-from app.utils import PasswordUtil, send_verification_email, confirm_verification_token
+from app.utils import PasswordUtil, send_verification_email, confirm_verification_token, send_password_reset_email
+
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -55,8 +56,8 @@ def login():
     if not user or not PasswordUtil.verify_password(user.password_hash, password):
         return jsonify({'error': 'Invalid username or password'}), 401
 
-    access_token = create_access_token(identity=user.id)
-    refresh_token = create_refresh_token(identity=user.id)
+    access_token = create_access_token(identity=user.user_id)
+    refresh_token = create_refresh_token(identity=user.user_id)
 
     return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 200
 
@@ -91,5 +92,26 @@ def verify_email():
     return jsonify({'message': 'Email verified successfully'}), 200
 
 
-#TO DO: Create a Forgot Password route
+@auth_bp.route('/forgot_password', methods=['POST'])
+def forgot_password():
+    '''send password reset email'''
+    data = request.json
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'message': 'If email exists, a password reset link has been sent to your email.'}), 200
+    
+    try:
+        send_password_reset_email(user.email)
+        return jsonify({'message': 'If email exists, a passowrd reset link has been sent to your email.'}), 200
+    except Exception as e:
+        current_app.logger.error(f"Password reset email failed: {e}"), 200
+        return jsonify({'error': 'Email service unavailable'}), 500
+                                
+
+
+
+
 

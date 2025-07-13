@@ -68,5 +68,5 @@ def rebuild_leaderboard():
         ).filter_by(market_id=m.market_id).one()
         score = _composite(stats.avg_rating, stats.avg_sent, stats.review_ct)
         pipe.zadd("leaderboard", {m.market_id: score})
-    pipe.exectute()
+    pipe.execute()
     
