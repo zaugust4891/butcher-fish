@@ -111,7 +111,32 @@ def forgot_password():
         return jsonify({'error': 'Email service unavailable'}), 500
                                 
 
+@auth_bp.route('/reset_password', methods=['POST'])
+def reset_password():
+    '''Reset password with valid token'''
+    data = request.json
+    token = data.get('token')
+    new_password = data.get('password')
+    if not token or not new_password:
+        return jsonify({'error': 'Token and password required'}), 400
+    from app.utils.token import confirm_password_reset_token
+    email = confirm_password_reset_token(
+        token,
+        current_app.config['SECRET_KEY'],
+        current_app.config['SECURITY_PASSWORD_SALT']
+    )
+
+    if not email:
+        return jsonify({'error': 'Invalid or expired token'}), 400
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    user.password_hash = PasswordUtil.hash_password(new_password)
+    db.session.commit()
+
+    return jsonify({'message': 'Password reset successfully'}), 200
 
 
 
+#NEXT: def reset_password():
 
