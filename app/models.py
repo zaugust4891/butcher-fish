@@ -1,5 +1,6 @@
 from app.database import db
 from app.mixins import SoftDeleteMixin
+from datetime import datetime
 
 # Market Model
 class Market(SoftDeleteMixin, db.Model):
@@ -39,7 +40,15 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    role = db.Column(db.String(32), nullable=False, default="user", index=True)  # 'user', 'admin', etc.
+    totp_secret = db.Column(db.String(64), nullable=True)
+    two_factor_enabled = db.Column(db.Boolean, nullable=False, default=False)  # 'user', 'admin', etc.
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    @classmethod
+    def has_role(self, *roles: str) -> bool:
+        return (self.role or "user") in roles
 # Review Model
 class Review(db.Model):
     __tablename__ = 'reviews'
