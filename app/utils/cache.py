@@ -16,11 +16,10 @@ def _http_ns() -> str:
 # key_builder must be a callable returning a unique Redis key(often just a constant or a lambda that inspects request.args)
 def redis_cache(key_builder,  ttl: int = 300, content_type: str = "application/json", vary_by_user: bool = False): #ttl time to live in seconds.
     """Cache a Flask Response body for read-heavy endpoints.
-+    - key_builder: callable(*args, **kwargs) -> str; if None, derive from request.path + sorted querystring
-+    - ttl: seconds to keep the cache
-+    - vary_by_user: include user id (if any) in the cache key
-+    - content_type: returned Content-Type for cached hits
-+    """
+ - key_builder: callable(*args, **kwargs) -> str; if None, derive from request.path + sorted querystring
+- ttl: seconds to keep the cache  - vary_by_user: include user id (if any) in the cache key
+   - content_type: returned Content-Type for cached hits
+   """
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):

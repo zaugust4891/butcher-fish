@@ -49,6 +49,7 @@ class User(db.Model):
     @classmethod
     def has_role(self, *roles: str) -> bool:
         return (self.role or "user") in roles
+    
 # Review Model
 class Review(db.Model):
     __tablename__ = 'reviews'
