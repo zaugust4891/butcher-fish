@@ -71,6 +71,36 @@ class AddressSchema(Schema):
             
             return data
         
+        
+class NutritionInfoSchema(Schema):
+    """Nested schema for nutritional information"""
+    calories = fields.Int(required=True, validate=validate.Range(min=0, max=5000))
+    protein_g = fields.Float(validate=validate.Range(min=0))
+    fat_g = fields.Float(validate=validate.Range(min=0))
+    carbs_g = fields.Float(validate=validate.Range(min=0))
+    
+    @validates_schema
+    def validate_macros(self, data, **kwargs):
+        """
+        Cross-field validation: ensure macronutrients make sense together.
+        This demonstrates how nested schemas can enforce business logic.
+        """
+        # Calculate expected calories from macros (roughly)
+        protein = data.get('protein_g', 0)
+        fat = data.get('fat_g', 0)
+        carbs = data.get('carbs_g', 0)
+        
+        expected_calories = (protein * 4) + (fat * 9) + (carbs * 4)
+        actual_calories = data.get('calories', 0)
+        
+        # Allow 20% margin of error
+        if abs(expected_calories - actual_calories) > actual_calories * 0.2:
+            raise ValidationError(
+                f"Calories ({actual_calories}) don't match macronutrients. "
+                f"Expected approximately {expected_calories:.0f} calories."
+            )
+        
+
 class MenuItemSchema(Schema):
     '''Validate menu item input'''
     name = fields.Str(required=True, validate=validate.Length(min=2, max=100))
@@ -83,7 +113,39 @@ class MenuItemSchema(Schema):
     special_offer = fields.Bool(missing=False)
     special_price = fields.Decimal(places=2, allow_none=True)
 
+    # Nested schemas for complex data
+    nutrition = fields.Nested(NutritionInfoSchema, allow_none=True)
+    
+    # List of allergens - demonstrates list validation
+    allergens = fields.List(
+        fields.Str(validate=validate.OneOf([
+            'gluten', 'dairy', 'eggs', 'soy', 'nuts', 'shellfish', 'fish'
+        ])),
+        validate=validate.Length(max=7)  # Can't have more allergens than we define
+    )
+
     @validates('name')
     def validate_name(self, value):
         if not value.isalpha():
             raise ValidationError("Name must contain only alphabetic characters.")
+        
+    @validates_schema
+    def validate_special_pricing(self, data, **kwargs):
+        """
+        Conditional validation: if special_offer is True, special_price must be provided
+        and must be less than regular price.
+        """
+        if data.get('special_offer', False):
+            special_price = data.get('special_price')
+            if special_price is None:
+                raise ValidationError(
+                    'special_price is required when special_offer is True',
+                    field_name='special_price'
+                )
+            
+            regular_price = data.get('price')
+            if special_price >= regular_price:
+                raise ValidationError(
+                    f'Special price ({special_price}) must be less than regular price ({regular_price})',
+                    field_name='special_price'
+                )

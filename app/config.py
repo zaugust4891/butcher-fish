@@ -3,6 +3,25 @@ import os
 import secrets
 import json
 
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+# Optional: namespacing so keys don’t collide across envs
+REDIS_NAMESPACE = os.getenv("REDIS_NAMESPACE", "app")  # e.g., app, staging, prod
+# app/config.py (excerpt)
+JWT_SECRET_KEY = env.str("JWT_SECRET_KEY")
+JWT_ALGORITHM = "HS256"  # keep simple; rotate keys if needed later
+
+# Token lifetimes
+JWT_ACCESS_TOKEN_EXPIRES = 60 * 15          # 15 minutes
+JWT_REFRESH_TOKEN_EXPIRES = 60 * 60 * 24*14 # 14 days
+
+# Where tokens live (API-style)
+JWT_TOKEN_LOCATION = ["headers"]  # if you decide to use cookies for web, switch to ["cookies"] and set cookie names/CSRF
+JWT_HEADER_NAME = "Authorization"
+JWT_HEADER_TYPE = "Bearer"
+
+# Optional if you do cookie sessions later
+JWT_COOKIE_SECURE = True
+JWT_COOKIE_SAMESITE = "Lax"
 
 #TO DO: switch placeholder hardcoded creds with env vars. 
 class EmailConfig:
