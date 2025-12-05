@@ -4,10 +4,26 @@ from functools import wraps
 from flask import current_app, make_response, request
 from flask_jwt_extended import get_jwt, verify_jwt_in_request_optional
 
+# ---- Key builders (prefix them with a namespace) ----
 def key_user_cutover(uid: int | str) -> str:
     """Generate a Redis key for user-specific data, e.g., login sessions."""
 
     return f"{_ns()}:logout_after:{uid}"
+
+def _ns() -> str:
+    # e.g. "prod:app" or just "app"
+    ns = current_app.config.get("REDIS_NAMESPACE", "app")
+    return f"{ns}:jwt"
+
+# Token revoked marker
+# Usage: redis_client.setex(key_revoked(jti), ttl, "1")
+def key_revoked(jti: str) -> str:
+    return f"{_ns()}:revoked:{jti}"
+
+# Refresh family pointer (stores current refresh jti)
+# Usage: redis_client.setex(key_refresh_pointer(fid), ttl, jti)
+def key_refresh_pointer(fid: str) -> str:
+    return f"{_ns()}:rt:{fid}"
 
 def _http_ns() -> str:
     ns = current_app.config.get('REDIS_NAMESPACE', 'app')
