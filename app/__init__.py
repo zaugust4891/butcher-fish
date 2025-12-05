@@ -2,14 +2,21 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_mail import Mail
 from app.config import DevelopmentConfig, ProductionConfig
+from flask_jwt_extended import JWTManager
+from flask import current_app
 from app.database import db
 import redis
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
+jwt = JWTManager()
 mail = Mail()
+
+@jwt.token_in_blocklist_loader
+def is_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+    jti = jwt_payload["jti"]
+   
 
 def create_app():
     app = Flask(__name__)
@@ -24,7 +31,17 @@ def create_app():
         app.config['DEBUG'] = config.DEBUG
     if hasattr(config, 'SQLALCHEMY_ECHO'):
         app.config['SQLALCHEMY_ECHO'] = config.SQLALCHEMY_ECHO
+    app.config.setdefault('JWT_SECRET_KEY', config.JWT_SECRET_KEY)
     
+    jwt.init_app(app)
+
+    @jwt.token_in_blocklist_loader
+    def is_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+        jti = jwt_payload["jti"]
+        if not jti:
+            return True # No JTI means token is not valid
+        return current_app.redis_client.get(f"jwt:revoked:{jti}") is not None
+
     db.init_app(app)
     mail.init_app(app)
 
