@@ -4,9 +4,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import select
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from app.database import db
-from app.models import Review
+from app.models.models import Review
 from app.utils.leaderboard import update_leaderboard
-from app.validators import ReviewSchema
+from app.models.validators.validators import ReviewSchema
 
 analyzer = SentimentIntensityAnalyzer()
 reviews_bp = Blueprint('reviews', __name__)

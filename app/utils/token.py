@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token, get_jwt, decode_token
 )
 from app.database import db
-from app.models import User
+from app.models.models import User
 
 ACCESS_EXPIRES = timedelta(minutes=15)
 REFRESH_EXPIRES = timedelta(days=14)
