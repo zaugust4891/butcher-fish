@@ -1,6 +1,6 @@
 import math
 from app.database import db
-from app.models import Market, Review
+from app.models.models import Market, Review
 from app import celery, redis_client
 
 # plain dict that lets you tweak the influence of each factor without changing code further down.

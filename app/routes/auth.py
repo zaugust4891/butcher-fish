@@ -10,7 +10,7 @@ from flask_jwt_extended import (
     get_jwt,
     get_jwt_identity,
 )
-from app.models import User
+from app.models.models import User
 from app.database import db
 from app.utils import (
     PasswordUtil,
@@ -131,7 +131,7 @@ def refresh_token():
         return jsonify({"error": "Refresh token reuse detected. Please login again."}), 401
 
     # 2) Rotate: issue new pair with SAME family
-    from app.models import User
+    from app.models.models import User
     user = User.query.get(user_id)
     access, new_refresh, _ = issue_token_pair(user, scopes=claims.get("scopes", []), new_family=False, family_id=family_id)
 

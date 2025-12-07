@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, current_app
 from sqlalchemy import select
 from app.database import db
-from app.models import Market, Review
+from app.models.models import Market, Review
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from app.utils.cache import redis_cache
 

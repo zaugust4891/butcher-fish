@@ -1,7 +1,7 @@
 from functools import wraps
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request, get_jwt
 from flask import jsonify
-from app.models import User
+from app.models.models import User
 from app.database import db 
 
 def verified_required(fn):

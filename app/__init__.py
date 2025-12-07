@@ -46,7 +46,39 @@ def create_app():
     mail.init_app(app)
 
     # Import models after db initialization to avoid circular imports
-    from app.models import Market, User, Review, MarketAccount, MenuItem, Message, VerificationDocument
+    # core models
+    from app.models.models import (
+        Market,
+        User,
+        Review,
+        MarketAccount,
+        MenuItem,
+        Message,
+        VerificationDocument,
+    )
+
+    # Profile and social graph models
+    from app.models.profile import (
+        UserProfile,
+        Follow,
+        MarketFollow,
+    )
+
+    __all__ = [
+        # Core models
+        'Market',
+        'User',
+        'Review',
+        'MarketAccount',
+        'MenuItem',
+        'Message',
+        'VerificationDocument',
+        
+        # Profile models
+        'UserProfile',
+        'Follow',
+        'MarketFollow',
+    ]
 
     Migrate(app, db)
     
